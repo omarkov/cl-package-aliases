@@ -1,0 +1,184 @@
+Overview.
+----------------------------------------
+
+  CL-PACKAGE-ALIASES provides an extension to ANSI Packages, which allows
+  the user to define package-local aliases to other packages in a
+  transparent way. It tries to integrate with the rest of CL, so functions
+  like RENAME-PACKAGE are aware of these aliases.
+
+  Since it needs to redefine some internal functions, this package is
+  not really portable. Ports exist for Allegro, CMUCL, LispWorks, OpenMCL
+  and SBCL. A CLISP one would be nice, but the straightforward way of wrapping
+  FIND-PACKAGE doesn't work there and I don't see where else the necessary
+  calls could be latched on.
+
+  Contributions welcome.
+
+
+Installation and usage instructions.
+----------------------------------------
+
+  At the Lisp prompt:
+
+    ? (asdf:oos 'asdf:load-op :cl-package-aliases)
+
+        [... lots of out output on SBCL ...]
+
+    ? (defpackage :foo (:alias (:common-lisp :bar)))
+    #<Package "FOO">
+
+    ? (in-package :foo)
+    #<Package "FOO">
+
+    ? (bar:+ 2 3)
+    5
+
+
+Reference for PACKAGE-ALIASES
+----------------------------------------
+
+
+  [Structure]
+  PACKAGE-ALIAS
+
+  The package alias structure.
+
+  [Function]
+  PACKAGE-ALIAS-FROM alias => package
+
+  Returns the source package of ALIAS.
+
+  
+  [Function]
+  PACKAGE-ALIAS-TO alias => string
+
+  Returns the name of this ALIAS.
+
+  
+  [Function]
+  PACKAGE-ALIAS-P alias => boolean
+
+  Predicate to check for the package alias structure.
+
+
+  [Function]
+  MAKE-PACKAGE-ALIAS package source-package alias-name => package-alias
+
+  This function will make a new package alias in PACKAGE, which translates
+  ALIAS-NAME to the package given in SOURCE-PACKAGE. A condition of type
+  CONFLICT-WITH-PACKAGE will be signalled if the source name collides with
+  an already present package name or nickname (you are not allowed to shadow
+  with aliases).
+
+  
+  [Function]
+  PACKAGE-ALIAS-EQUAL alias1 alias => result
+
+  This predicate checks for equality between two package aliases. Does NOT
+  check the respective package for which these are defined.
+
+
+  [Function]
+  PACKAGE-ALIAS-LIST package => list
+  
+  This function returns a list of all defined aliases in PACKAGE. A continuable
+  condition of type SIMPLE-ERROR will be signalled if PACKAGE does not name an
+  existing package.
+
+
+  [Function]
+  PACKAGE-ALIASED-BY-LIST package => list
+
+  This function returns a list of all packages, which have an alias on PACKAGE.
+  A continuable condition of type SIMPLE-ERROR will be signalled if PACKAGE
+  does not name an existing package.
+
+
+  [Function]
+  MAP-OVER-PACKAGE-ALIASES function package
+
+  Applies FUNCTION to all aliases in PACKAGE. A continuable condition of type
+  SIMPLE-ERROR will be signalled if PACKAGE does not name an existing package.
+
+
+  [Function]
+  DELETE-PACKAGE-ALIASES package alias => list
+
+  Removes ALIAS from the list of package aliases in PACKAGE. It returns the
+  new list of aliases. A continuable condition of type SIMPLE-ERROR will be
+  signalled if PACKAGE does not name an existing package.
+
+
+  [Function]
+  DELETE-ALL-ALIASES-IN-PACKAGE package => result
+
+  This function removes all aliases from PACKAGE and returns T if any aliases
+  were deleted, NIL otherwise. A continuable condition of type SIMPLE-ERROR
+  will be signalled if PACKAGE does not name an existing package.
+
+  
+  [Function]
+  LIST-ALL-PACKAGE-ALIASES => list
+  
+  This function returns a list of all known package aliases in the form
+  (PACKAGE . ALIAS). The CAR of each element is the package, where the alias
+  is defined and the CDR is the alias object itself.
+
+
+  I appreciate any feedback, bug reports or fixes and patches.
+    
+
+Changes to COMMON-LISP
+----------------------------------------
+
+  Some CL functions have been changed to accomodate the aliases (to define
+  them, check for conflicts etc.). Following is a list of all changed symbols:
+
+
+  DEFPACKAGE
+  
+  This is the most obvious change: one can now define aliases
+  directly through defpackage. It will signal a condition of type
+  CONFLICT-WITH-PACKAGE, if any of the given aliases shadow an existing package
+  or nickname. A condition of CONFLICT-WITH-ALIAS will be signalled, if the
+  name or any of the nicknames of the new package collide with an alias in
+  another package.
+
+
+  MAKE-PACKAGE
+
+  The new version adds error checking. See DEFPACKAGE.
+
+
+  FIND-PACKAGE
+
+  This will now also look for aliases and return an appropriate package if any
+  matches.
+
+
+  RENAME-PACKAGE
+
+  If an aliased package gets renamed, all aliases referencing it will be
+  updated. An condition of type CONFLICT-WITH-ALIAS will be signalled, if the
+  new name or any of the new nicknames collide with an alias in another
+  package.
+
+
+  DELETE-PACKAGE
+
+  The new version of delete-package will now check, if an alias references the
+  package which is to be deleted. If found, a continuable condition of type
+  PACKAGE-STILL-ALIASED will be signalled.
+
+
+License.
+----------------------------------------
+
+  CL-PACKAGE-ALIASES is licensed under the new-style BSD license.
+
+
+Contact.
+----------------------------------------
+
+  CL-PACKAGE-ALIASES is written and maintained by Oliver Markovic, who
+  can be contacted at entrox@entrox.org.
